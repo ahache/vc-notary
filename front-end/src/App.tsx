@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import "./App.css"
+import axios from "axios"
 
 function App() {
   const [did, setDid] = useState('');
@@ -23,6 +24,14 @@ function App() {
       
       console.log('Received code:', code);
       window.history.replaceState({}, document.title, window.location.pathname);
+      
+      axios.post('http://localhost:8000/api/request_vc', { code })
+        .then(response => {
+          console.log(response.data);
+        })
+        .catch(error => {
+          console.error(error);
+        });
     }
   }, []);
 
