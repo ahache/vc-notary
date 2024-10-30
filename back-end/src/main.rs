@@ -1,3 +1,13 @@
+mod auth;
+mod notarize;
+mod present;
+mod verify;
+
+use auth::fetch_bearer_token;
+use notarize::notarize_api_data;
+use present::build_presentation;
+use verify::verify_presentation;
+
 use axum::{
     routing::post, 
     Json, 
@@ -19,50 +29,40 @@ struct CodeData {
     code: String,
 }
 
-async fn fetch_bearer_token(Json(payload): Json<CodeData>) -> impl IntoResponse {
-    let client_id = env::var("REDDIT_CLIENT_ID").expect("REDDIT_CLIENT_ID must be set");
-    let client_secret = env::var("REDDIT_CLIENT_SECRET").expect("REDDIT_CLIENT_SECRET must be set");
-    let redirect_uri = env::var("REDDIT_REDIRECT_URI").expect("REDDIT_REDIRECT_URI must be set");
-    let client = Client::new();
+#[derive(Deserialize)]
+struct TokenResponse {
+    access_token: String,
+}
 
-    let credentials = format!("{}:{}", client_id, client_secret);
-    let encoded_credentials = encode(credentials);
+async fn process_user_and_vc(Json(payload): Json<CodeData>) -> impl IntoResponse {
+    let response_body = fetch_bearer_token(payload.code).await.unwrap();
+    let token_response: TokenResponse = serde_json::from_str(&response_body).unwrap();
 
-    let response = client
-        .post("https://www.reddit.com/api/v1/access_token")
-        .header("Authorization", format!("Basic {}", encoded_credentials))
-        .header("User-Agent", "Notary3")
-        .form(&[
-            ("grant_type", "authorization_code"),
-            ("code", &payload.code),
-            ("redirect_uri", redirect_uri.as_str()),
-        ])
-        .send()
-        .await;
+    let access_token = token_response.access_token;
 
-    match response {
-        Ok(resp) => {
-            let status = resp.status();
-            let body = resp.text().await.unwrap_or_else(|_| "Failed to read response body".to_string());
-            println!("Reddit API response status: {}, body: {}", status, body);
+    // Communicate with the notary server and get attestation and secrets
+    notarize_api_data(access_token).await;
 
-            match serde_json::from_str::<serde_json::Value>(&body) {
-                Ok(json) => Json(json).into_response(),
-                Err(_) => (axum::http::StatusCode::INTERNAL_SERVER_ERROR, "Failed to parse JSON").into_response(),
-            }
-        }
-        Err(err) => {
-            println!("Request to Reddit API failed: {:?}", err);
-            (axum::http::StatusCode::INTERNAL_SERVER_ERROR, "Request failed").into_response()
-        }
-    }
+    // Build the presentation
+    build_presentation();
+
+    // Verify the presentation
+    verify_presentation();
+
+    // println!("Bearer token: {}", &access_token);
+
+    (
+        axum::http::StatusCode::OK,
+        "Processing request, please check back later.",
+    )
+        .into_response()
 }
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
     let app = Router::new()
-        .route("/api/request_vc", post(fetch_bearer_token))
+        .route("/api/request_vc", post(process_user_and_vc))
         .layer(
             CorsLayer::new()
             .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
