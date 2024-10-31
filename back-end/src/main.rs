@@ -35,21 +35,35 @@ struct TokenResponse {
 }
 
 async fn process_user_and_vc(Json(payload): Json<CodeData>) -> impl IntoResponse {
-    let response_body = fetch_bearer_token(payload.code).await.unwrap();
-    let token_response: TokenResponse = serde_json::from_str(&response_body).unwrap();
+    // let response_body = fetch_bearer_token(payload.code).await.unwrap();
+    // let token_response: TokenResponse = serde_json::from_str(&response_body).unwrap();
 
-    let access_token = token_response.access_token;
+    // let access_token = token_response.access_token;
 
-    // Communicate with the notary server and get attestation and secrets
-    notarize_api_data(access_token).await;
+    // // Communicate with the notary server and get attestation and secrets
+    // notarize_api_data(access_token).await;
 
-    // Build the presentation
-    build_presentation();
+    // // Build the presentation
+    // build_presentation();
 
-    // Verify the presentation
-    verify_presentation();
+    // // Verify the presentation
+    // verify_presentation();
 
-    // println!("Bearer token: {}", &access_token);
+    let client = Client::new();
+    let file_path = "vcnotary.presentation.tlsn";
+    let form = reqwest::multipart::Form::new()
+        .file("file", file_path)
+        .await
+        .expect("Failed to create form file");
+
+    let response = client
+        .post("http://localhost:3333/request_vc")
+        .multipart(form)
+        .send()
+        .await
+        .expect("Failed to send request");
+
+    println!("Response: {:?}", response);
 
     (
         axum::http::StatusCode::OK,
