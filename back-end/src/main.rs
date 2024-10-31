@@ -63,11 +63,11 @@ async fn process_user_and_vc(Json(payload): Json<CodeData>) -> impl IntoResponse
         .await
         .expect("Failed to send request");
 
-    println!("Response: {:?}", response);
+    let credential = response.json::<serde_json::Value>().await.unwrap();
 
     (
         axum::http::StatusCode::OK,
-        "Processing request, please check back later.",
+        Json(credential),
     )
         .into_response()
 }

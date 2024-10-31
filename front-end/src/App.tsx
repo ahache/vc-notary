@@ -22,7 +22,6 @@ function App() {
         localStorage.removeItem('pendingDID');
       }
       
-      console.log('Received code:', code);
       window.history.replaceState({}, document.title, window.location.pathname);
       
       axios.post('http://localhost:8000/api/request_vc', { code })

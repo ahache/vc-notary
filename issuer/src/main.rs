@@ -2,9 +2,8 @@ use axum::{
     extract::Multipart,
     routing::post,
     Router,
-    // Json, 
+    Json, 
     response::IntoResponse,
-    // http::{HeaderValue, Method},
 };
 use tokio::net::TcpListener;
 use std::net::SocketAddr;
@@ -13,6 +12,7 @@ use tlsn_core::{
     CryptoProvider,
 };
 use serde::Deserialize;
+use reqwest::Client;
 
 #[derive(Debug, Deserialize)]
 struct RedditResponse {
@@ -35,6 +35,8 @@ struct SubredditData {
 }
 
 async fn request_vc(mut multipart: Multipart) -> impl IntoResponse {
+    let mut credential = serde_json::Value::Null;
+
     while let Some(field) = multipart.next_field().await.unwrap() {
         let data = field.bytes().await.unwrap();
 
@@ -44,7 +46,7 @@ async fn request_vc(mut multipart: Multipart) -> impl IntoResponse {
 
         let PresentationOutput { transcript, server_name, .. } = presentation.verify(&provider).unwrap();
 
-        println!("Server name: {}", server_name.unwrap());
+        // println!("Server name: {}", server_name.unwrap());
 
         let transcript = transcript.unwrap();
 
@@ -56,13 +58,21 @@ async fn request_vc(mut multipart: Multipart) -> impl IntoResponse {
 
         // Grabs the first subreddit from the response
         let subreddit_url = &parsed_body.data.children[0].data.url;
-        println!("Subreddit URL: {}", subreddit_url);
 
+        let client = Client::new();
+        let response = client.post("http://localhost:3334/create-credential")
+            .json(&serde_json::json!({
+                "did": "did:web:example.com",
+                "subreddit": subreddit_url
+            }))
+            .send().await.unwrap();
+
+        credential = response.json::<serde_json::Value>().await.unwrap();
     }
-
+    
     (
         axum::http::StatusCode::OK,
-        "Processing request, please check back later.",
+        Json(credential),
     )
         .into_response()
 }
