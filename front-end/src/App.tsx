@@ -19,18 +19,19 @@ function App() {
       const savedDid = localStorage.getItem('pendingDID');
       if (savedDid) {
         setDid(savedDid);
-        localStorage.removeItem('pendingDID');
+        
+        axios.post('http://localhost:8000/api/request_vc', { code, did: savedDid })
+        .then(response => {
+            console.log(response.data);
+            localStorage.removeItem('pendingDID');
+            // setDid('');
+          })
+          .catch(error => {
+            console.error(error);
+          });
       }
       
       window.history.replaceState({}, document.title, window.location.pathname);
-      
-      axios.post('http://localhost:8000/api/request_vc', { code })
-        .then(response => {
-          console.log(response.data);
-        })
-        .catch(error => {
-          console.error(error);
-        });
     }
   }, []);
 

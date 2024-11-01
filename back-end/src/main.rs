@@ -25,8 +25,9 @@ use tower_http::cors::CorsLayer;
 use base64::encode;
 
 #[derive(Deserialize)]
-struct CodeData {
+struct InputParams {
     code: String,
+    did: String,
 }
 
 #[derive(Deserialize)]
@@ -34,7 +35,7 @@ struct TokenResponse {
     access_token: String,
 }
 
-async fn process_user_and_vc(Json(payload): Json<CodeData>) -> impl IntoResponse {
+async fn process_user_and_vc(Json(payload): Json<InputParams>) -> impl IntoResponse {
     // let response_body = fetch_bearer_token(payload.code).await.unwrap();
     // let token_response: TokenResponse = serde_json::from_str(&response_body).unwrap();
 
@@ -52,9 +53,11 @@ async fn process_user_and_vc(Json(payload): Json<CodeData>) -> impl IntoResponse
     let client = Client::new();
     let file_path = "vcnotary.presentation.tlsn";
     let form = reqwest::multipart::Form::new()
+        .text("did", payload.did)
         .file("file", file_path)
         .await
-        .expect("Failed to create form file");
+        .unwrap();
+        // .expect("Failed to create form file");
 
     let response = client
         .post("http://localhost:3333/request_vc")

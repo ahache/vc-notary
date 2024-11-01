@@ -9,4 +9,4 @@
   - These values are available after creating a Reddit web app.
   - `REDDIT_REDIRECT_URI` should be set to the front-end URL. Ensure every character matches exactly.
 - Run `cargo run` to start the server.
-- The server runs on port 3333.
+- The server runs on port 8000.
