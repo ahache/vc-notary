@@ -41,10 +41,10 @@ async fn process_user_and_vc(Json(payload): Json<InputParams>) -> impl IntoRespo
 
     // let access_token = token_response.access_token;
 
-    // // Communicate with the notary server and get attestation and secrets
+    // Communicate with the notary server and get attestation and secrets
     // notarize_api_data(access_token).await;
 
-    // // Build the presentation
+    // Build the presentation
     // build_presentation();
 
     // // Verify the presentation
@@ -57,14 +57,13 @@ async fn process_user_and_vc(Json(payload): Json<InputParams>) -> impl IntoRespo
         .file("file", file_path)
         .await
         .unwrap();
-        // .expect("Failed to create form file");
 
     let response = client
         .post("http://localhost:3333/request_vc")
         .multipart(form)
         .send()
         .await
-        .expect("Failed to send request");
+        .unwrap();
 
     let credential = response.json::<serde_json::Value>().await.unwrap();
 

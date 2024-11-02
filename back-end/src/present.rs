@@ -14,9 +14,20 @@ pub fn build_presentation() {
 
     let request = &transcript.requests[0];
 
+    // Hide bearer token
     builder.reveal_sent(&request.without_data()).unwrap();
+    builder.reveal_sent(&request.request.target).unwrap();
+    for header in &request.headers {
+        if !header.name.as_str().eq_ignore_ascii_case("authorization") {
+            builder.reveal_sent(header).unwrap();
+        } else {
+            builder.reveal_sent(&header.without_value()).unwrap();
+        }
+    }
 
-    builder.reveal_recv(&transcript.responses[0]).unwrap();
+    let response = &transcript.responses[0];
+
+    builder.reveal_recv(response).unwrap();
 
     let transcript_proof = builder.build().unwrap();
 

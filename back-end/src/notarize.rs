@@ -74,7 +74,7 @@ pub async fn notarize_api_data(access_token: String) {
         .uri(format!("https://oauth.reddit.com/subreddits/mine/moderator"))
         .header("Host", "oauth.reddit.com")
         .header("Accept", "*/*")
-        .header("Accept-Language", "en-US,en;q=0.5")
+        .header("Accept-Language", "en-US")
         .header("Accept-Encoding", "identity")
         .header("User-Agent", "VC Notary")
         .header("Authorization", format!("Bearer {}", &access_token))
