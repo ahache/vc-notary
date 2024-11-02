@@ -1,6 +1,6 @@
 ## VC Notary
 
-This project is a demonstration of using the TLS Notary protocol to attest to user account specific data fetched from an API and process those results into a verifiable credential. 
+This project is a demonstration of using the TLS Notary protocol to attest to user account specific data fetched from an API and have the results processed into a verifiable credential. 
 
 Specifically, the Reddit API is used to fetch information on which subreddit a user is a moderator of and then a verifiable credential stating this is issued to them using their desired DID. The motivation for this choice is based in the understanding that this responsibility is a signal of trust already having been issued to this individual. This enables users to transform their existing trusted role into a verifiable credential.
 
@@ -10,9 +10,9 @@ The project relies on three seperate services: the primary full stack applicatio
 
 ![Architecture and Application Flow](./VCNotary-Diagram.png)
 
-1. The user inputs their DID and clicks the "Get Your VC" button. They are redirected to Reddit to authenticate. They are then redirected back to the application with an authorization code.
+1. The user inputs their DID and clicks the "Get Your VC" button. They are redirected to Reddit to authorize the application. They are then redirected back to the application with an authorization code.
 2. The authorization code along with the user's DID are sent to the back-end server. The authorization code is exchanged for an access token.
-3. Initiate connection with the notary server.
+3. The back-end server initiates a connection with the notary server.
 4. Initiate TLS session with the Reddit API. The notary server engages in the MPC protocol with the back-end server to attest to the encryption of the request and decryption of the response, while remaining blind to the plaintext data.
 5. The back-end receives a signed attestation from the result of the MPC protocol.
 6. The back-end prepares a verifiable presentation of the plaintext data received from the TLS session.
@@ -20,22 +20,22 @@ The project relies on three seperate services: the primary full stack applicatio
 8. The credential service verifies the presented data. If valid, the appropriate information (Subreddit name) is extracted from the response data and used to issue a verifiable credential.
 9. The verifiable credential is returned to the front end and displayed to the user.
 
-### Requirements
+### Prerequisites
 
 - Rust
 - Node.js
+- Reddit account with moderator privileges (only one subreddit is processed at this time)
+- Reddit Web Application credentials (create at https://www.reddit.com/prefs/apps/)
 
-### Setup
-
-- A Reddit Web Application must be created: https://www.reddit.com/prefs/apps/
-- Testing requires an account that is a moderator of at least one subreddit (only one is processed at this time)
+### Installation
 
 - Clone repository
 - Install `tlsn` submodule: `git submodule update --init`
 - Set `tls: enabled: false` in `tlsn/crates/notary/server/config/config.yaml`
 
-### Running the project
+### Component Setup
 
+Each component has its own setup instructions:
 - Front-end: refer to `front-end/README.md`
 - Back-end: refer to `back-end/README.md`
 - Issuer Proxy: refer to `issuer/README.md`
