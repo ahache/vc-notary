@@ -37,7 +37,6 @@ struct SubredditData {
 async fn request_vc(mut multipart: Multipart) -> impl IntoResponse {
     let mut credential = serde_json::Value::Null;
     let mut did = String::new();
-    // let mut server_name1 = String::new();
     let mut subreddit_url = String::new();
 
     while let Some(field) = multipart.next_field().await.unwrap() {
@@ -47,14 +46,17 @@ async fn request_vc(mut multipart: Multipart) -> impl IntoResponse {
             "file" => {
                 let data = field.bytes().await.unwrap();
                 let presentation: Presentation = bincode::deserialize(&data).unwrap();
+
                 let provider = CryptoProvider::default();
+
                 let PresentationOutput { transcript, server_name, .. } = presentation.verify(&provider).unwrap();
-                // server_name1 = server_name.unwrap().to_string();
+
                 let transcript = transcript.unwrap();
                 let bytes = transcript.received_unsafe();
                 let response_text = String::from_utf8_lossy(bytes);
                 let parts: Vec<&str> = response_text.split("\r\n\r\n").collect();
                 let body = parts[1].as_bytes();
+                
                 let parsed_body: RedditResponse = serde_json::from_slice(body).expect("Failed to parse body");
                 subreddit_url = parsed_body.data.children[0].data.url.clone();
             }
