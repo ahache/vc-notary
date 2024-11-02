@@ -4,13 +4,13 @@ use tlsn_core::{request::RequestConfig, transcript::TranscriptCommitConfig};
 use tlsn_prover::{Prover, ProverConfig};
 use tlsn_formats::http::{DefaultHttpCommitter, HttpCommit, HttpTranscript};
 
-use http_body_util::{BodyExt, Empty};
-use hyper::{body::Bytes, Request, StatusCode};
+use http_body_util::{Empty};
+use hyper::{body::Bytes, Request};
 use hyper_util::rt::TokioIo;
-use std::{env, str};
 use tokio_util::compat::{FuturesAsyncReadCompatExt, TokioAsyncReadCompatExt};
-use tracing::debug;
-use utils::range::RangeSet;
+
+// Notary server MPC connection logic draws from the examples in the tlsn crate
+// https://github.com/tlsnotary/tlsn/tree/main/crates/examples
 
 const MAX_SENT_DATA: usize = 1 << 12;
 const MAX_RECV_DATA: usize = 1 << 14;
@@ -31,12 +31,11 @@ pub async fn notarize_api_data(access_token: String) {
 
     let Accepted {
         io: notary_connection,
-        id: _session_id,
         ..
     } = notary_client
         .request_notarization(notarization_request)
         .await
-        .expect("Could not connect to notary. Make sure it is running.");
+        .unwrap();
 
     let protocol_config = ProtocolConfig::builder()
         .max_sent_data(MAX_SENT_DATA)

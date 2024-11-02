@@ -1,12 +1,10 @@
 mod auth;
 mod notarize;
 mod present;
-mod verify;
 
 use auth::fetch_bearer_token;
 use notarize::notarize_api_data;
 use present::build_presentation;
-use verify::verify_presentation;
 
 use axum::{
     routing::post, 
@@ -20,9 +18,7 @@ use serde::Deserialize;
 use reqwest::Client;
 use std::net::SocketAddr;
 use dotenv::dotenv;
-use std::env;
 use tower_http::cors::CorsLayer;
-use base64::encode;
 
 #[derive(Deserialize)]
 struct InputParams {
@@ -36,19 +32,16 @@ struct TokenResponse {
 }
 
 async fn process_user_and_vc(Json(payload): Json<InputParams>) -> impl IntoResponse {
-    // let response_body = fetch_bearer_token(payload.code).await.unwrap();
-    // let token_response: TokenResponse = serde_json::from_str(&response_body).unwrap();
+    let response_body = fetch_bearer_token(payload.code).await.unwrap();
+    let token_response: TokenResponse = serde_json::from_str(&response_body).unwrap();
 
-    // let access_token = token_response.access_token;
+    let access_token = token_response.access_token;
 
     // Communicate with the notary server and get attestation and secrets
-    // notarize_api_data(access_token).await;
+    notarize_api_data(access_token).await;
 
     // Build the presentation
-    // build_presentation();
-
-    // // Verify the presentation
-    // verify_presentation();
+    build_presentation();
 
     let client = Client::new();
     let file_path = "vcnotary.presentation.tlsn";

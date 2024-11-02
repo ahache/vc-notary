@@ -1,6 +1,9 @@
 use tlsn_core::{attestation::Attestation, presentation::Presentation, CryptoProvider, Secrets};
 use tlsn_formats::http::HttpTranscript;
 
+// Presentation logic draws from the examples in the tlsn crate
+// https://github.com/tlsnotary/tlsn/tree/main/crates/examples
+
 pub fn build_presentation() {
     let attestation_bytes = std::fs::read("vcnotary.attestation.tlsn").unwrap();
     let attestation: Attestation = bincode::deserialize(&attestation_bytes).unwrap();

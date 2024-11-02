@@ -50,6 +50,9 @@ function App() {
     <div className="min-h-screen flex flex-col p-8">
       <header className="mb-16">
         <h1 className="text-4xl font-bold">VC Notary</h1>
+        <p className="text-muted-foreground mt-4 max-w-2xl">
+          Enter your DID to receive a verifiable credential. Make sure you're logged into the Reddit account for which you want to prove moderator status.
+        </p>
       </header>
 
       <main className="flex-1">
