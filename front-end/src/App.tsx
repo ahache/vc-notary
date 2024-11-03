@@ -67,8 +67,14 @@ function App() {
               value={did}
               onChange={(e) => setDid(e.target.value)}
               className="flex-1"
+              disabled={isLoading}
             />
-            <Button onClick={handleAuth}>Get Your VC</Button>
+            <Button
+              onClick={handleAuth} 
+              disabled={isLoading}
+            >
+              {isLoading ? 'Processing...' : 'Get Your VC'}
+            </Button>
           </div>
 
           {isLoading && (
